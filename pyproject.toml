@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "igpy-messagebus"
+version = "0.0.1"
+authors = [
+  { name="Ivan Georgiev", email="ivan.georgiev@gmail.com" },
+]
+description = "Message bus"
+readme = "README.md"
+license = { file="LICENSE" }
+requires-python = ">=3.7"
+dependencies = [
+  "igeorgiev"
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/ivangeorgiev/igpy"
+"Bug Tracker" = "https://github.com/ivangeorgiev/igpy/issues"
+
+# See https://setuptools.pypa.io/en/latest/userguide/package_discovery.html#finding-simple-packages
+[tool.setuptools.packages.find]
+where = ["src"]
