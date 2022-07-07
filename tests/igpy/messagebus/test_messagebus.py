@@ -30,6 +30,10 @@ def message_bus_with_two_handlers(mock_handler1, mock_handler2):
     handler_map = {DummyMessage: [mock_handler1, mock_handler2]}
     return MappingMessageBus(handler_map)
 
+class TestMessageBus:
+    def test_get_handlers_for_returns_empty_list(self, some_message):
+        message_bus = MessageBus()
+        assert [] == message_bus._get_handlers_for(some_message)
 
 class TestMappedMessageBus:
     def test_MappedMessageBus_creates_instance(self):
