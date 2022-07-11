@@ -42,7 +42,10 @@ class SQLiteRepository(Repository):
     def table_exists(self, table_name):
         """Returns True if table exists and Flase otherwise"""
         with self.transaction() as trans:
-            trans.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?;", [table_name])
+            trans.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name=?;",
+                [table_name],
+            )
             return bool(trans.fetchall())
 
     def row_count(self, table_name):
@@ -108,4 +111,3 @@ class SQLiteRepository(Repository):
                 f"DELETE FROM {self.queue_table_name} WHERE message_id=?",
                 [item.message_id],
             )
-

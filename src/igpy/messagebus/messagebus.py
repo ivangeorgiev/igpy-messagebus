@@ -35,6 +35,7 @@ class MessageBus:
 
 
 class Consumer:
+    """Message bus consumer for running in a thread"""
     def __init__(self, message_bus: MessageBus):
         self.message_bus = message_bus
         self._stopped = False
@@ -44,25 +45,30 @@ class Consumer:
         self.peek_batch_size = 10
 
     def pause(self):
+        """Pause the consumer"""
         self._paused = True
 
     def resume(self):
+        """Resume previously paused consumer"""
         self._paused = False
 
     def stop(self):
+        """Stop the consumer and exit the run() method"""
         self._stopped = True
 
     def run(self):
+        """Run consumer polling loop"""
         while not self._stopped:
             if self._paused:
-                time.sleep(self.paused_sleep_interval) # Some kind of throttling could be implemented
+                # Some kind of throttling could be implemented
+                time.sleep(self.paused_sleep_interval)
                 continue
             messages = self.message_bus.peek(self.peek_batch_size)
             for message in messages:
                 self.process(message)
                 self.message_bus.remove(message)
-            time.sleep(self.running_sleep_interval) # Some kind of throttling could be implemented
+            # Some kind of throttling could be implemented
+            time.sleep(self.running_sleep_interval)
 
     def process(self, message: Any):
         """Process message"""
-
