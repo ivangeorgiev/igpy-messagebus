@@ -1,40 +1,68 @@
-"""Message Bus module
+"""Message Bus implementation
 """
-# pylint: disable=too-few-public-methods
-from collections import defaultdict
-from typing import Any, Callable, Dict, List, Type
+from dataclasses import dataclass
+from datetime import datetime
+import time
+from typing import Any
+from .persistence import Repository
 
+@dataclass(frozen=True)
+class TextMessage:
+    """Simple text message for testing"""
 
-MessageHandler = Callable[[Any], None]
-HandlerRegistry = Dict[Type, List[MessageHandler]]
+    body: str
+    message_id: int=None
+    posted_at: datetime=None
 
 
 class MessageBus:
-    """Dummy Message Bus implementation"""
+    """Message bus"""
 
-    def handle(self, message: Any) -> None:
-        """Handle message"""
-        for handler in self._get_handlers_for(message):
-            handler(message)
+    def __init__(self, repository: Repository):
+        self.repository = repository
 
-    # pylint: disable=unused-argument
-    def _get_handlers_for(
-        self, message: Any
-    ) -> List[MessageHandler]:
-        """Get a list of message handlers for a message."""
-        return []
+    def put(self, item: Any):
+        """Put item into the bus"""
+        self.repository.insert(item)
+
+    def peek(self, batch_limit=None) -> Any:
+        """Get items from the bus"""
+        return self.repository.select(batch_limit)
+
+    def remove(self, item: Any):
+        """Remove an item from the bus"""
+        self.repository.delete(item)
 
 
-class MappingMessageBus(MessageBus):
-    """Message Bus with handler mapping."""
+class Consumer:
+    def __init__(self, message_bus: MessageBus):
+        self.message_bus = message_bus
+        self._stopped = False
+        self._paused = False
+        self.paused_sleep_interval = 1
+        self.running_sleep_interval = 1
+        self.peek_batch_size = 10
 
-    handler_map: HandlerRegistry
+    def pause(self):
+        self._paused = True
 
-    def __init__(
-        self,
-        handler_map: HandlerRegistry = None,
-    ):
-        self.handler_map = handler_map or defaultdict(set)
+    def resume(self):
+        self._paused = False
 
-    def _get_handlers_for(self, message: Any) -> List[MessageHandler]:
-        return self.handler_map[type(message)]
+    def stop(self):
+        self._stopped = True
+
+    def run(self):
+        while not self._stopped:
+            if self._paused:
+                time.sleep(self.paused_sleep_interval) # Some kind of throttling could be implemented
+                continue
+            messages = self.message_bus.peek(self.peek_batch_size)
+            for message in messages:
+                self.process(message)
+                self.message_bus.remove(message)
+            time.sleep(self.running_sleep_interval) # Some kind of throttling could be implemented
+
+    def process(self, message: Any):
+        """Process message"""
+
